@@ -1,0 +1,5 @@
+Object_position_description itself
+Object_position_description annex
+Object_position_description opp_main
+Object_position_description opp_annex
+Static_positioned_objects other
