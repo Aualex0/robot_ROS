@@ -60,6 +60,7 @@ def send_data(data):
 def check():
     # Cette fonction renvoie true en cas de risque de collision
     #TODO : collision with walls ?
+    #TODO : edit pour mettre des cercles au lieu des carrés ?
 
     safety_distance = 200
     #TODO : calculate optimal safety distance
