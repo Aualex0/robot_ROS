@@ -25,6 +25,7 @@ def update_map(data):
 
     trust_factor = 0.3 # facteur de confiance envers les données du Lidar
     #TODO : rechercher le trust_factor optimal -- à voir si la bibliothèque le fait bcp mieux
+    #TODO : comparer la nouvelle position et l'ancienne pour éliminer les données aberrantes
     #TODO : update status of static objects that become useless (by tracking position of opponent robots)
 
     if current_map.itself.object == "false" :
