@@ -24,6 +24,8 @@ def change_coordinates(new_origin, point):
 
 def make_decision(data):
     #make decision
+    #input : Table description, intern state
+    #output : first move
     #publish for actioners to act
     #V1 : follow a predefined path
     #V2 : remember position of objects; take into consideration disruption from opponent
