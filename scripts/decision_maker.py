@@ -40,10 +40,14 @@ def talker_motors():
     # format des données à envoyer aux moteurs principaux : (int type, float x, float y, int rotation).
     # type = (0:stop, 1:translation; 2:rotation)
     # coordonnées dans la base du robot
+    pub = rospy.Publisher('order_move', String, queue_size=10)
+    #pub.publish() publish order to move again
     moving = True
     
 def talker_actioners():
     # donne l'ordre aux actionneurs de se mettre en route pour ramasser les palets
+    pub = rospy.Publisher('order_actioners', String, queue_size=10)
+    #pub.publish() publish order to grab slices
     processing = True
     
 def feedback_move(data):
