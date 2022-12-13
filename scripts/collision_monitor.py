@@ -89,6 +89,7 @@ def listener():
     while not rospy.is_shutdown():
         # Veille évitement
         if check():
+            #TODO : envoyer directement à order_move l'ordre de s'arrêter sans passer par le decision_maker ?
             pub = rospy.Publisher('send_data', Table_description, queue_size=10)
             pub.publish(current_map)
         time.sleep(0.05)
