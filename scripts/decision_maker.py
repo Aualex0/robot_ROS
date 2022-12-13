@@ -27,6 +27,7 @@ def make_decision(data):
     #input : Table description, intern state
     #output : first move
     #publish for actioners to act
+    #l'ordre peut être de stopper tout mouvement jusqu'à validation par les actionneurs internes (état stop moteur)
     #V1 : follow a predefined path
     #V2 : remember position of objects; take into consideration disruption from opponent
     #V3 : assess the situation
@@ -37,11 +38,27 @@ def talker_motors():
     # type = (0:stop, 1:translation; 2:rotation)
     # coordonnées dans la base du robot
     True
+    
+def feedback_move(data):
+    #reçoit le retour de l'arduino moteur (par ex si le mvmt a été effectué avec succès)
+    #lance un nouvel ordre instantanément
+    pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
+    message = "true"
+    pub.publish(message)
+    
+def intern_state(data):
+    #reçoit l'état interne du robot (actionneurs internes)
+    #lorsque les palets ont été ramassés avec succès, on peut lancer le prochain ordre de déplacement
+    pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
+    message = "true"
+    pub.publish(message)
 
 def listener():
     rospy.init_node('decision_maker', anonymous=True)
 
     rospy.Subscriber("send_data", Table_description, make_decision)
+    rospy.Subscriber("feedback_move", String, feedback_move)
+    rospy.Subscriber("intern_state", String, intern_state)
 
     while not rospy.is_shutdown():
         pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
