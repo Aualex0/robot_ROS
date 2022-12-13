@@ -16,6 +16,8 @@ current_map.annex.object = "false"
 current_map.opp_main.object = "false"
 current_map.opp_annex.object = "false"
 
+stop = False
+
 #TODO : init position of static objects
 
 
@@ -89,9 +91,16 @@ def listener():
     while not rospy.is_shutdown():
         # Veille évitement
         if check():
-            #TODO : envoyer directement à order_move l'ordre de s'arrêter sans passer par le decision_maker ?
-            pub = rospy.Publisher('send_data', Table_description, queue_size=10)
-            pub.publish(current_map)
+            if not stop:
+                stop = True
+                #TODO : envoyer directement à order_move l'ordre de s'arrêter sans passer par le decision_maker ?
+                #pub = rospy.Publisher('send_data', Table_description, queue_size=10)
+                pub = rospy.Publisher('order_move', String, queue_size=10)
+                #pub.publish() publish order to stop
+        elif stop:
+            stop = False;
+            pub = rospy.Publisher('order_move', String, queue_size=10)
+            #pub.publish() publish order to move again
         time.sleep(0.05)
 
 
