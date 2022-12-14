@@ -9,10 +9,15 @@ from std_msgs import String
 import math
 import time
 
-processing = False
-moving = False
-time_left = 0
-avancement = 0
+processing = False          #True si action interne en cours qui nécessite l'arrêt du robot (grab ou release de gateaux)
+moving = False              #True si le robot est actuellement en mouvement
+init_time = time.time()     #initialisation du temps à t = 0
+blocks_grabbed = 0          #nombre de blocs récupérés
+cakes_released = 0          #nombre de gateaux relâchés
+zones_availables = 4        #nombre de zones de blocs encore disponibles (non défoncés)
+
+#variables à ajuster au cours des tests
+time_to_pdp = 10 #temps pour mettre les pieds dans le plat (pdp)
 
 def change_coordinates(new_origin, point):
     # projection dans le repère du robot
@@ -31,13 +36,28 @@ def change_coordinates(new_origin, point):
 def make_decision(data):
     #make decision
     #input : Table description, intern state, time left, moving, past actions
-    #output : first move
+    #output : first move (order to motors or order to actioners)
     #publish for actioners to act
     #l'ordre peut être de stopper tout mouvement jusqu'à validation par les actionneurs internes (état stop moteur)
+    
     #V1 : follow a predefined path
     #V2 : remember position of objects; take into consideration disruption from opponent
     #V3 : assess the situation
+    
     table_description = data.data
+    #moves possibles : aller chercher la ressource suivante, aller déposer les gateaux, mettre les pieds dans le plat
+    #si on est déjà en récupération de ressources, on privilégie de terminer la recup
+    time_left = 100 - (time.time() - init_time())
+    if time_left < time_to_pdp:
+        pieds_dans_le_plat(table_description)
+        
+def pieds_dans_le_plat(table_description):
+    pass
+    #effectue l'action de mettre les pieds dans le plat  
+    
+def get_path(x, y, table_description):
+    #implémenter l'algorithme A* ?
+    pass
     
 def get_next_point(x,y, table_description):
     #prend en entrée l'objectif final et renvoie le prochain point à atteindre
@@ -61,7 +81,7 @@ def talker_actioners(grab):
     # type = (true: grab, false: release)
     pub = rospy.Publisher('order_actioners', String, queue_size=10)
     message = ("true" if grab else "false")
-    pub.publish(message) #publish order to grab slices or to release them
+    pub.publish(message) #publish order to grab slices or to release them and put a cherry on it
     processing = True
     
 def feedback_move(data):
