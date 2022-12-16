@@ -12,9 +12,11 @@ import time
 processing = False          #True si action interne en cours qui nécessite l'arrêt du robot (grab ou release de gateaux)
 moving = False              #True si le robot est actuellement en mouvement
 init_time = time.time()     #initialisation du temps à t = 0
-blocks_grabbed = 0          #nombre de blocs récupérés
-cakes_released = 0          #nombre de gateaux relâchés
-zones_availables = 4        #nombre de zones de blocs encore disponibles (non défoncés)
+blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
+cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
+zones_availables = 4        #nombre de zones de blocs encore disponibles (non défoncés par un robot adverse)
+zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance pour la fin de la partie (à modifier)
+current_goal = (0,0)   #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
 
 #variables à ajuster au cours des tests
 time_to_pdp = 10 #temps pour mettre les pieds dans le plat (pdp)
@@ -52,16 +54,25 @@ def make_decision(data):
         pieds_dans_le_plat(table_description)
         
 def pieds_dans_le_plat(table_description):
+    #effectue l'action de mettre les pieds dans le plat
+    for i in range(5):
+        if zone_libre(i):
+            type, x, y, rotation = get_move(zones_plats[i][0], zones_plats[i][1], table_description)
+            talker_motors(type, x, y, rotation)
+            break
+
+    
+def zone_libre(zone):
+    #regarde si la zone selectionnée est libre
     pass
-    #effectue l'action de mettre les pieds dans le plat  
     
 def get_path(x, y, table_description):
     #implémenter l'algorithme A* ?
     pass
     
-def get_next_point(x,y, table_description):
-    #prend en entrée l'objectif final et renvoie le prochain point à atteindre
-    pass
+def get_move(x,y, table_description):
+    #prend en entrée l'objectif final et renvoie le prochain mouvement à effectuer
+    current_goal = x, y
 
 def get_move_type(x, y, self_pos):
      #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
@@ -73,7 +84,7 @@ def talker_motors(type, x, y, rotation):
     # coordonnées dans la base du robot
     pub = rospy.Publisher('order_move', list, queue_size=10)
     message = [type, x, y, rotation]
-    pub.publish(message) #publish order to move again
+    pub.publish(message) #publish order to move
     moving = True
     
 def talker_actioners(grab):
