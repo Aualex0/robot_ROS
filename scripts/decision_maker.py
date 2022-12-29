@@ -16,7 +16,7 @@ blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemb
 cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
 zones_availables = 4        #nombre de zones de blocs encore disponibles (non défoncés par un robot adverse)
 zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance pour la fin de la partie (à modifier)
-current_goal = (0,0)   #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
+current_goal = [(0,0)]   #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
 
 #variables à ajuster au cours des tests
 time_to_pdp = 10 #temps pour mettre les pieds dans le plat (pdp)
@@ -64,15 +64,13 @@ def pieds_dans_le_plat(table_description):
     
 def zone_libre(zone):
     #regarde si la zone selectionnée est libre
+    #facile en regardant si les robots adverses intersectent la zone étudiée
     pass
     
 def get_path(x, y, table_description):
-    #implémenter l'algorithme A* ?
+    #aller chercher l'info dans le fichier de pathfinding
+    #variable retournée : liste des coordonnées auxquelles il faut aller successivement
     pass
-    
-def get_move(x,y, table_description):
-    #prend en entrée l'objectif final et renvoie le prochain mouvement à effectuer
-    current_goal = x, y
 
 def get_move_type(x, y, self_pos):
      #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
