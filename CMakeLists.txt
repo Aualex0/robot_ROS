@@ -208,6 +208,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_install_python(PROGRAMS scripts/input_analyser.py scripts/collision_monitor.py scripts/decision_maker.py
+catkin_install_python(PROGRAMS scripts/input_analyser.py scripts/collision_monitor.py scripts/decision_maker.py scripts/pathfinding.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
