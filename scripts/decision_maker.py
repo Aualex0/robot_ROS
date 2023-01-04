@@ -15,11 +15,12 @@ init_time = time.time()     #initialisation du temps à t = 0
 blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
 cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
 zones_availables = 4        #nombre de zones de blocs encore disponibles (non défoncés par un robot adverse)
-zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance pour la fin de la partie (à modifier)
-current_goal = [(0,0)]   #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
+zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance pour la fin de la partie (TODO)
+current_goal = [(0,0)]      #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
 
 #variables à ajuster au cours des tests
-time_to_pdp = 10 #temps pour mettre les pieds dans le plat (pdp)
+time_to_pdp = 10            #temps nécessaire pour mettre les pieds dans le plat (pdp)
+calcul_frequency = 0.2      #Hertz
 
 def change_coordinates(new_origin, point):
     # projection dans le repère du robot
@@ -57,7 +58,7 @@ def pieds_dans_le_plat(table_description):
     #effectue l'action de mettre les pieds dans le plat
     for i in range(5):
         if zone_libre(i):
-            type, x, y, rotation = get_move(zones_plats[i][0], zones_plats[i][1], table_description)
+            type, x, y, rotation = get_move(zones_plats[i][0], zones_plats[i][1], table_description) #TODO
             talker_motors(type, x, y, rotation)
             break
 
@@ -128,7 +129,7 @@ def listener():
 
     while not rospy.is_shutdown():
         pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
-        rate = rospy.Rate(0.2) # 0.2hz
+        rate = rospy.Rate(calcul_frequency) 
         message = "true"
         pub.publish(message)
 
