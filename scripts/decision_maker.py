@@ -11,12 +11,15 @@ import time
 
 processing = False          #True si action interne en cours qui nécessite l'arrêt du robot (grab ou release de gateaux)
 moving = False              #True si le robot est actuellement en mouvement
+depose = False             #True à partir du moment où on a récupéré les 18 couches
 init_time = time.time()     #initialisation du temps à t = 0
+blocks_grabbable = 3        #nombre de block récupérable dans la pile de récupération
 blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
 cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
-zones_availables = 4        #nombre de zones de blocs encore disponibles (non défoncés par un robot adverse)
-zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance pour la fin de la partie (TODO)
+zones_availables = [2, 2, 2, 2]        #zones de blocs encore disponibles (non défoncés par un robot adverse) (sens horaire, en partant des paniers)(2=True,1=target,0=False)
+zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance (=les plus éloignés de la safezone) pour la fin de la partie (TODO)
 current_goal = [(0,0)]      #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
+equipe = 3                  #3:bleu et 0:vert
 
 #variables à ajuster au cours des tests
 time_to_pdp = 10            #temps nécessaire pour mettre les pieds dans le plat (pdp)
@@ -43,16 +46,48 @@ def make_decision(data):
     #publish for actioners to act
     #l'ordre peut être de stopper tout mouvement jusqu'à validation par les actionneurs internes (état stop moteur)
     
-    #V1 : follow a predefined path
-    #V2 : remember position of objects; take into consideration disruption from opponent
-    #V3 : assess the situation
-    
     table_description = data.data
     #moves possibles : aller chercher la ressource suivante, aller déposer les gateaux, mettre les pieds dans le plat
     #si on est déjà en récupération de ressources, on privilégie de terminer la recup
     time_left = 100 - (time.time() - init_time())
     if time_left < time_to_pdp:
         pieds_dans_le_plat(table_description)
+    else:
+        if not (processing or moving):
+            if not depose:
+                if blocks_grabbable == 0:
+                    if blocks_grabbed == 6:
+                        depose = True
+                    else:
+                        #réordonner les blocks
+                        pass
+                else:
+                    for i in range(4):
+                        if zones_availables[i]==1:
+                            #go take the closest available block inside the target part and update status
+                            hastarget = True
+                            pass
+                    if not hastarget :
+                        if zones_availables[1] == 2 and zones_availables[2] == 2 :
+                            #go to closest
+                            #switch to ongoing
+                            pass
+                        else:
+                            if zones_availables[equipe] == 2 :
+                                #go there
+                                #switch to ongoing
+                                pass
+                            elif zones_availables[3-equipe]==2 :
+                                #go there
+                                #switch to ongoing
+                                pass
+                            else:
+                                #go to available from 1 and 2
+                                pass
+
+            else:
+                #aller poser dans les zones_plats en remplissant par le bas puis se placer en protection
+                pass
         
 def pieds_dans_le_plat(table_description):
     #effectue l'action de mettre les pieds dans le plat
