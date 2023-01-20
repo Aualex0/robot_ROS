@@ -7,8 +7,8 @@ import heapq
 
 #Guide d'utilisation du module de pathfinding
 #from implementation import *
-#start, goal = (1, 4), (8, 3)
-#came_from, cost_so_far = dijkstra_search(diagram4, start, goal)
+#start, goal = (1, 30), (28, 0)
+#came_from, cost_so_far = a_star_search(diagram, start, goal)
 #draw_grid(diagram, point_to=came_from, start=start, goal=goal)
 #draw_grid(diagram, path=reconstruct_path(came_from, start=start, goal=goal))
 #draw_grid(diagram, path=optimize_path(reconstruct_path(came_from, start=start, goal=goal)))
