@@ -66,20 +66,20 @@ def make_decision(data):
                         if zones_availables[i]==1:
                             #go take the closest available block inside the target part and update status
                             hastarget = True
-                            pass
                     if not hastarget :
                         if zones_availables[1] == 2 and zones_availables[2] == 2 :
                             #go to closest
                             #switch to ongoing
                             pass
+                        #TODO: cas une seule zone available
                         else:
                             if zones_availables[equipe] == 2 :
                                 #go there
-                                #switch to ongoing
+                                zones_availables[equipe] = 1
                                 pass
                             elif zones_availables[3-equipe]==2 :
                                 #go there
-                                #switch to ongoing
+                                zones_available[3-equipe] = 1
                                 pass
                             else:
                                 #go to available from 1 and 2
