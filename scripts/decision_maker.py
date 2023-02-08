@@ -16,7 +16,7 @@ init_time = time.time()     #initialisation du temps à t = 0
 blocks_grabbable = 3        #nombre de block récupérable dans la pile de récupération
 blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
 cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
-zones_availables = [[2,
+zones_availables = [[2,     #à terme, à déplacer dans la database principale
                      Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0),
                      Object_position_description(object = "ingredient yellow", x = 775, y = 2000-225, alpha = 0),
                      Object_position_description(object = "ingredient brown", x = 1125, y = 2000-725, alpha = 0)],
@@ -71,7 +71,6 @@ def position_closest(list_objects, self_pos):
         
 
 def make_decision(data):
-    #make decision
     #input : Table description, intern state, time left, moving, past actions
     #output : first move (order to motors or order to actioners)
     #publish for actioners to act
@@ -94,11 +93,12 @@ def make_decision(data):
             else:
                 for i in range(4):
                     if zones_availables[i][0]==1:
-                        #go take the closest available block inside the target part
+                        objective = position_closest(zones_availables[i][1::]data.itself)
+                        moves_steps = get_path(objective.x, objective.y, data)
                         if len(zones_availables[i])==1:
                             hastarget = False
                             zones_availables[i][0]=0
-                if not hastarget :
+                if not hastarget:
                     if zones_availables[1][0] == 2 and zones_availables[2][0] == 2 :
                         #go to closest
                         #switch to ongoing
