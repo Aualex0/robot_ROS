@@ -39,6 +39,10 @@ def change_coordinates(new_origin, point):
     projected.y -= rot_origin.y
     return projected
 
+def distance(origin, point):
+    #TODO : calcul de distance effective via algorithmithme de pathfinding pour amélioration
+    return math.sqrt((origin.x - point.x)**2 + (origin.y - point.y)**2)
+
 def make_decision(data):
     #make decision
     #input : Table description, intern state, time left, moving, past actions
