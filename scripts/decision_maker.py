@@ -16,7 +16,22 @@ init_time = time.time()     #initialisation du temps à t = 0
 blocks_grabbable = 3        #nombre de block récupérable dans la pile de récupération
 blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
 cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
-zones_availables = [2, 2, 2, 2]        #zones de blocs encore disponibles (non défoncés par un robot adverse) (sens horaire, en partant des paniers)(2=True,1=target,0=False)
+zones_availables = [[2,
+                     Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0),
+                     Object_position_description(object = "ingredient yellow", x = 775, y = 2000-225, alpha = 0),
+                     Object_position_description(object = "ingredient brown", x = 1125, y = 2000-725, alpha = 0)],
+                    [2,
+                     Object_position_description(object = "ingredient rose", x = 3000-575, y = 2000-225, alpha = 0),
+                     Object_position_description(object = "ingredient yellow", x = 3000-775, y = 2000-225, alpha = 0),
+                     Object_position_description(object = "ingredient brown", x = 3000-1125, y = 2000-725, alpha = 0)],
+                    [2,
+                     Object_position_description(object = "ingredient rose", x = 3000-575, y = 225, alpha = 0),
+                     Object_position_description(object = "ingredient yellow", x = 3000-775, y = 225, alpha = 0),
+                     Object_position_description(object = "ingredient brown", x = 3000-1125, y = 725, alpha = 0)],
+                    [2,
+                     Object_position_description(object = "ingredient rose", x = 575, y = 225, alpha = 0),
+                     Object_position_description(object = "ingredient yellow", x = 775, y = 225, alpha = 0),
+                     Object_position_description(object = "ingredient brown", x = 1125, y = 725, alpha = 0)]]        #zones de blocs encore disponibles (non défoncés par un robot adverse) (sens horaire, en partant des paniers)(2=True,1=target,0=False)
 zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance (=les plus éloignés de la safezone) pour la fin de la partie (TODO)
 current_goal = [(0,0)]      #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
 equipe = 3                  #3:bleu et 0:vert
@@ -67,23 +82,23 @@ def make_decision(data):
                         pass
                 else:
                     for i in range(4):
-                        if zones_availables[i]==1:
+                        if zones_availables[i][0]==1:
                             #go take the closest available block inside the target part and update status
                             hastarget = True
                     if not hastarget :
-                        if zones_availables[1] == 2 and zones_availables[2] == 2 :
+                        if zones_availables[1][0] == 2 and zones_availables[2][0] == 2 :
                             #go to closest
                             #switch to ongoing
                             pass
                         #TODO: cas une seule zone available
                         else:
-                            if zones_availables[equipe] == 2 :
+                            if zones_availables[equipe][0] == 2 :
                                 #go there
-                                zones_availables[equipe] = 1
+                                zones_availables[equipe][0] = 1
                                 pass
-                            elif zones_availables[3-equipe]==2 :
+                            elif zones_availables[3-equipe][0]==2 :
                                 #go there
-                                zones_available[3-equipe] = 1
+                                zones_available[3-equipe][0] = 1
                                 pass
                             else:
                                 #go to available from 1 and 2
