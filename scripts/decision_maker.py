@@ -72,41 +72,44 @@ def make_decision(data):
     if time_left < time_to_pdp:
         pieds_dans_le_plat(table_description)
     else:
-        if not (processing or moving):
-            if not depose:
-                if blocks_grabbable == 0:
-                    if blocks_grabbed == 6:
-                        depose = True
-                    else:
-                        #réordonner les blocks
-                        pass
+        if not depose:
+            if blocks_grabbable == 0:
+                if blocks_grabbed == 6:
+                    depose = True
                 else:
-                    for i in range(4):
-                        if zones_availables[i][0]==1:
-                            #go take the closest available block inside the target part and update status
-                            hastarget = True
-                    if not hastarget :
-                        if zones_availables[1][0] == 2 and zones_availables[2][0] == 2 :
-                            #go to closest
-                            #switch to ongoing
-                            pass
-                        #TODO: cas une seule zone available
-                        else:
-                            if zones_availables[equipe][0] == 2 :
-                                #go there
-                                zones_availables[equipe][0] = 1
-                                pass
-                            elif zones_availables[3-equipe][0]==2 :
-                                #go there
-                                zones_available[3-equipe][0] = 1
-                                pass
-                            else:
-                                #go to available from 1 and 2
-                                pass
-
+                    #réordonner les blocks
+                    pass
             else:
-                #aller poser dans les zones_plats en remplissant par le bas puis se placer en protection
-                pass
+                for i in range(4):
+                    if zones_availables[i][0]==1:
+                        #go take the closest available block inside the target part
+                        if len(zones_availables[i])==1:
+                            hastarget = False
+                            zones_availables[i][0]=0
+                if not hastarget :
+                    if zones_availables[1][0] == 2 and zones_availables[2][0] == 2 :
+                        #go to closest
+                        #switch to ongoing
+                        pass
+                    #TODO: cas une seule zone available
+                    else:
+                        if zones_availables[equipe][0] == 2 :
+                            #go there
+                            zones_availables[equipe][0] = 1
+                            pass
+                        elif zones_availables[3-equipe][0]==2 :
+                            #go there
+                            zones_available[3-equipe][0] = 1
+                            pass
+                        else:
+                            #go to available from 1 and 2
+                            pass
+
+        else:
+            #aller poser dans les zones_plats en remplissant par le bas puis se placer en protection (passage en phase 3 de test plus tard)
+            pass
+              
+    make_decision(data)
         
 def pieds_dans_le_plat(table_description):
     #effectue l'action de mettre les pieds dans le plat
