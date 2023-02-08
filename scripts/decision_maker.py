@@ -57,6 +57,18 @@ def change_coordinates(new_origin, point):
 def distance(origin, point):
     #TODO : calcul de distance effective via algorithmithme de pathfinding pour amélioration
     return math.sqrt((origin.x - point.x)**2 + (origin.y - point.y)**2)
+  
+def position_closest(list_objects, self_pos):
+    #careful: this function removes said objects from database 
+    distance = 3000
+    point = None
+    for i in range(len(list_objects)):
+        if distance(self_pos, list_objects[i]) <= distance:
+            point = i
+            distance = distance(self_pos, list_objects[i])
+    point = list_objects.pop(point)
+    return point
+        
 
 def make_decision(data):
     #make decision
