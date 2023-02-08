@@ -94,7 +94,8 @@ def make_decision(data):
                 for i in range(4):
                     if zones_availables[i][0]==1:
                         objective = position_closest(zones_availables[i][1::]data.itself)
-                        moves_steps = get_path(objective.x, objective.y, data)
+                        move_steps = get_path(objective.x, objective.y, data)
+                        start_move(step[0][0], step[0][1], data.itself)
                         if len(zones_availables[i])==1:
                             hastarget = False
                             zones_availables[i][0]=0
@@ -142,7 +143,7 @@ def get_path(x, y, table_description):
     #variable retournée : liste des coordonnées auxquelles il faut aller successivement
     pass
 
-def get_move_type(x, y, self_pos):
+def start_move(x, y, self_pos):
      #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
      pass
 
