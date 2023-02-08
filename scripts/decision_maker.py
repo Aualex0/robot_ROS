@@ -144,13 +144,20 @@ def get_path(x, y, table_description):
     pass
 
 def start_move(x, y, self_pos):
-     #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
-     pass
+    #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
+    objective = Object_position_description(object = "objective", x=x, y=y, alpha=0)
+    objective_self_referential = change_coordinates(data.itself, objective)
+    talker_motors(1, None, None, math.atan2(objective_self_referential.y, objective_self_referential.x)
+    #wait until confirmed
+    talker_motors(2, distance(data.itself, objective), 0, None)
+    #wait until confirmed
+    pass
 
 def talker_motors(type, x, y, rotation):
     # format des données à envoyer aux moteurs principaux : (int type, float x, float y, int rotation).
-    # type = (0:stop, 1:translation; 2:rotation)
+    # type = (0:stop, 2:translation; 1:rotation)
     # coordonnées dans la base du robot
+    # rotation sens trigo
     pub = rospy.Publisher('order_move', list, queue_size=10)
     message = [type, x, y, rotation]
     pub.publish(message) #publish order to move
