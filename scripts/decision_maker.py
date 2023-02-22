@@ -89,6 +89,9 @@ def make_decision(data):
                         objective = position_closest(zones_availables[i][1], data.itself)
                         move_steps = pathfinding.main(objective.x, objective.y, data, equipe)
                         start_move(move_steps[0][0], move_steps[0][1], data.itself)
+                        table_description.itself.x = move_steps[0][0]
+                        table_description.itself.y = move_steps[0][1]
+                        update_database(table_description)
                         pass
                         if len(zones_availables[i][1])==0:
                             hastarget = False
