@@ -14,7 +14,7 @@ def talker():
     table_descr = Table_description(itself = Object_position_description(object="main", x=3000-140, y=225, alpha=180),
                                     annex = Object_position_description(object="annex", x=0, y=0, alpha=0),
                                     opp_main = Object_position_description(object="opp_main", x=0, y=0, alpha=0),
-                                    opp_annex = Object_position_description(object="opp_annex", x=0, y=0, alpha=0)
+                                    opp_annex = Object_position_description(object="opp_annex", x=0, y=0, alpha=0),
                                     other = Static_positioned_objects(q1_value = 2,
                                                                       q2_value = 2,
                                                                       q3_value = 1,
