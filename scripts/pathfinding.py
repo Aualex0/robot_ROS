@@ -6,77 +6,27 @@ from shapely.geometry import Polygon
 import heapq
 
 #Guide d'utilisation du module de pathfinding
-#from implementation import *
-#start, goal = (1, 30), (28, 0)
+#from pathfinding import *
+#start, goal = (1, 28), (18, 0)
 #came_from, cost_so_far = a_star_search(diagram, start, goal)
 #draw_grid(diagram, point_to=came_from, start=start, goal=goal)
 #draw_grid(diagram, path=reconstruct_path(came_from, start=start, goal=goal))
 #draw_grid(diagram, path=optimize_path(reconstruct_path(came_from, start=start, goal=goal)))
-
 
 #Definition des types de variables
 T = TypeVar('T')
 Location = TypeVar('Location')
 GridLocation = Tuple[int, int]
 
-#Zones encore disponibles
-zone1_available = True
-zone2_available = True
-zone3_available = True
-zone4_available = True
-
-#coordonnées des autres robots
-coords_opponent = []
-coords_opp_annex = []
-coords_annex = []
-
-"""
-coords_zone_1 = [[(0,365), (435, 365), (435, 985), (0, 985)],
-                    [(515, 915), (935, 915), (935, 1335), (515, 1335)]]
-
-coords_zone_2 = [[(0, 2635), (435, 2635), (435, 2015), (0, 2015)], 
-                    [(515, 2085), (935, 2085), (935, 1665), (515, 1665)]]
-
-coords_zone_3 = [[(2000, 2635), (1565, 2635), (1565, 2015), (2000, 2015)], 
-                    [(1485, 2085), (1065, 2085), (1065, 1665), (1485, 1665)]]
-
-coords_zone_4 = [[(2000, 365), (1565, 365), (1565, 985), (2000, 985)], 
-                    [(1485, 915), (1065, 915), (1065, 1335), (1485, 1335)]]
-"""
-
-#coordonnées des zones de ressources (connues)
-coords_zone_1 = [[(0,400), (499, 400), (499, 999), (0, 999)],
-                    [(500, 900), (899, 900), (899, 1299), (500, 1299)]]
-
-coords_zone_2 = [[(0, 2599), (499, 2599), (499, 2000), (0, 2000)], 
-                    [(500, 2099), (899, 2099), (899, 1700), (500, 1700)]]
-
-coords_zone_3 = [[(1999, 2599), (1500, 2599), (1500, 2000), (1999, 2000)], 
-                    [(1499, 2099), (1100, 2099), (1100, 1700), (1499, 1700)]]
-
-coords_zone_4 = [[(1999, 400), (1500, 400), (1500, 999), (1999, 999)], 
-                    [(1499, 900), (1100, 900), (1100, 1299), (1499, 1299)]]
-
-#murs dûs aux ressources
-walls_zone_1 = []
-walls_zone_2 = []
-walls_zone_3 = []
-walls_zone_4 = []
-
-#on les ajoute à la main car on connait leurs positions
-for i in range(0,5):
-    for j in range(4, 10):
-        walls_zone_1.append((i,j))
-        walls_zone_2.append((i, 29-j))
-        walls_zone_3.append((19-i, 29-j))
-        walls_zone_4.append((19-i, j))
-for i in range(5, 9):
-    for j in range(9, 13):
-        walls_zone_1.append((i,j))
-        walls_zone_2.append((i, 29-j))
-        walls_zone_3.append((19-i, 29-j))
-        walls_zone_4.append((19-i, j))
-
+#Initialisation des variables hard-coded
+dist_robot = 180 #taille en mm du robot max depuis le centre de rotation
+dist_robot_adv = 220 #taille robot adverse (marge au cas où)
+taille_palet = 60 #rayon du palet
+polygon_walls = []
+coords_ressources = []
+coords_annex = (0,0)
+coords_opp_annex = (0,0)
+coords_opponent = (0,0)
 
 #Definition de la class Graph
 class Graph:
@@ -139,14 +89,14 @@ class SquareGrid:
 #fonction de mise à jour des murs avec un nouveau polygone
 def update_walls(polygone):
     walls = []
-    for i in range(20):
-        for j in range(30):
-            p = Polygon([(i*100, j*100), ((i+1)*100 - 1, j*100), (i*100, (j+1)*100-1), ((i+1)*100 - 1, (j+1)*100 - 1)])
+    for i in range(2000):
+        for j in range(3000):
+            p = Polygon([(i, j), (i+1, j), (i, j+1), (i+1, j+1)])
             if p.intersects(polygone):
                 walls.append((i,j))
     return walls
 
-#Definition de la class de file de priorité
+#Definition de la classe de file de priorité
 class PriorityQueue:
     def __init__(self):
         self.elements: list[tuple[float, T]] = []
@@ -208,27 +158,16 @@ def a_star_search(graph: Graph, start: Location, goal: Location):
 
 #fonction de recherche de la non-nécessité d'un pas du chemin
 def merge_available(Loc1, Loc2, Loc3):
-    Loc1 = (Loc1[0]*100 + 5, Loc1[1]*100 + 5)
-    Loc2 = (Loc2[0]*100 + 5, Loc2[1]*100 + 5)
-    Loc3 = (Loc3[0]*100 + 5, Loc3[1]*100 + 5)
     p = Polygon([Loc1, Loc2, Loc3])
-    print(Loc1, Loc2, Loc3)
-    if zone1_available and (Polygon(coords_zone_1[0]).intersects(p) or Polygon(coords_zone_1[1]).intersects(p)):
-        return False
-    elif zone2_available and (Polygon(coords_zone_2[0]).intersects(p) or Polygon(coords_zone_2[1]).intersects(p)):
-        return False
-    elif zone3_available and (Polygon(coords_zone_3[0]).intersects(p) or Polygon(coords_zone_3[1]).intersects(p)):
-        return False
-    elif zone4_available and (Polygon(coords_zone_4[0]).intersects(p) or Polygon(coords_zone_4[1]).intersects(p)):
-        return False
-    else:
-        return (not Polygon(coords_opponent).intersects(p)) and (not Polygon(coords_opp_annex).intersects(p)) and (not Polygon(coords_annex).intersects(p))
+    for pol in polygon_walls:
+        if p.intersects(pol):
+            return False
+    return True
 
 #fonction d'optimisation du chemin calculé
 def optimize_path(path):
     #regarder si il existe une intersection entre le polygone créé et les murs
     #si non, merge le path
-    print(path)
     new_path: list[Location] = [path[0]]
     ind = 1
     l = len(path)
@@ -241,9 +180,74 @@ def optimize_path(path):
     new_path.append(path[l-1])
     return new_path
 
-diagram = SquareGrid(20, 30)
-diagram.walls += walls_zone_1 + walls_zone_2 + walls_zone_3 + walls_zone_4
-#diagram.walls += update_walls(Polygon(coords_zone_1[0])) + update_walls(Polygon(coords_zone_1[1]))
-#diagram.walls += update_walls(Polygon(coords_zone_2[0])) + update_walls(Polygon(coords_zone_2[1]))
-#diagram.walls += update_walls(Polygon(coords_zone_3[0])) + update_walls(Polygon(coords_zone_3[1]))
-#diagram.walls += update_walls(Polygon(coords_zone_4[0])) + update_walls(Polygon(coords_zone_4[1]))
+#fonction annexe de création de polygones dilatés
+def dilatation_polygone(x, y, border):
+    #x, y = positions du centre
+    return Polygon([(center + border, center + border),
+                    (center - border, center + border),
+                    (center - border, center - border),
+                    (center + border, center - border)])
+
+#fonction de génération des murs à partir des coordonnées des objets
+def generate_walls(team):
+    polygon_walls = []
+
+    #murs dûs aux ressources
+    for (x,y) in coords_ressources:
+        polygon_walls.append(dilatation_polygone(x, y, taille_palet + dist_robot))
+
+    #murs dûs aux robots
+    (x,y) = coords_opponent
+    polygon_walls.append(dilatation_polygone(x, y, dist_robot + dist_robot_adv))
+    (x,y) = coords_opp_annex
+    polygon_walls.append(dilatation_polygone(x, y, dist_robot + dist_robot_adv))
+    (x,y) = coords_annex
+    polygon_walls.append(dilatation_polygone(x, y, dist_robot + dist_robot_adv))
+
+
+    #murs dûs aux bords
+    polygon_walls.append(Polygon([(0,0), (dist_robot, 0), (0,2999), (dist_robot, 2999)]))
+    polygon_walls.append(Polygon([(1999,0), (1999-dist_robot, 0), (1999,2999), (1999-dist_robot, 2999)]))
+    polygon_walls.append(Polygon([(0,0), (0, dist_robot), (1999,0), (1999, dist_robot)]))
+    polygon_walls.append(Polygon([(0, 2999), (0, 2999-dist_robot), (1999,2999), (1999, 2999-dist_robot)]))
+
+    if (team == 0):
+        polygon_walls.append(dilatation_polygone(225, 225, 225 + dist_robot))
+    else:
+        polygon_walls.append(dilatation_polygone(1999-225, 225, 225 + dist_robot)) 
+
+    #update walls
+    for wall in polygon_walls:
+        diagram.walls += update_walls(wall)
+
+def main(x, y, Table_description, team)
+    diagram = SquareGrid(2000, 3000)
+
+    #récupération des coordonnées des objets
+
+    #coordonnées des autres robots
+    coords_opponent = (Table_description.opp_main.x, Table_description.opp_main.y)
+    coords_opp_annex = (Table_description.opp_annex.x, Table_description.opp_annex.y)
+    coords_annex = (Table_description.annex.x, Table_description.annex.y)
+
+    #coordonnées des ressources restantes
+    coords_ressources = []
+    for obj in Table_description.other.q1:
+        coords_ressources.append((obj.x, obj.y))
+    for obj in Table_description.other.q2:
+        coords_ressources.append((obj.x, obj.y))
+    for obj in Table_description.other.q3:
+        coords_ressources.append((obj.x, obj.y))
+    for obj in Table_description.other.q4:
+        coords_ressources.append((obj.x, obj.y))
+    for obj in Table_description.other.gateaux:
+        coords_ressources.append((obj.x, obj.y))
+
+    #génération des murs à partir des coordonnées des objets
+    generate_walls()
+
+    #calcul de la trajectoire
+    start, goal = (Table_description.itself.x, Table_description.itself.y), (x, y)
+    came_from, cost_so_far = a_star_search(diagram, start, goal)
+
+    return optimize_path(reconstruct_path(came_from, start=start, goal=goal))
