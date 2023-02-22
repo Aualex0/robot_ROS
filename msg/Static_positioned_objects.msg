@@ -1,9 +1,9 @@
-Int q1_value
+int16 q1_value
 Object_position_description[] q1
-Int q2_value
+int16 q2_value
 Object_position_description[] q2
-Int q3_value
+int16 q3_value
 Object_position_description[] q3
-Int q4_value
+int16 q4_value
 Object_position_description[] q4
 Object_position_description[] gateaux
