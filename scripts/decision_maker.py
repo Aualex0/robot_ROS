@@ -96,20 +96,15 @@ def make_decision(data):
                         if len(zones_availables[i][1])==0:
                             hastarget = False
                             zones_availables[i][0]=0
-                            switch (i) {
+                            match i :
                                 case 0:
-                                    table_description.other.q1_value = 0;
-                                    break;
+                                    table_description.other.q1_value = 0
                                 case 1:
-                                    table_description.other.q2_value = 0;
-                                    break;
+                                    table_description.other.q2_value = 0
                                 case 2:
-                                    table_description.other.q3_value = 0;
-                                    break;
+                                    table_description.other.q3_value = 0
                                 case 3:
-                                    table_description.other.q4_value = 0;
-                                    break;
-                            }
+                                    table_description.other.q4_value = 0
                             update_database(table_description)
 
                 if not hastarget:
