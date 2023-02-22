@@ -71,14 +71,14 @@ def check():
     safety_distance = 200
     #TODO : calculate optimal safety distance
 
-    if (current_map.annex.object != "false" and math.abs(current_map.itself.x - current_map.annex.x) < safety_distance
-                                            and math.abs(current_map.itself.y - current_map.annex.y) < safety_distance) :
+    if (current_map.annex.object != "false" and abs(current_map.itself.x - current_map.annex.x) < safety_distance
+                                            and abs(current_map.itself.y - current_map.annex.y) < safety_distance) :
         return True
-    if (current_map.opp_main.object != "false" and math.abs(current_map.itself.x - current_map.opp_main.x) < safety_distance
-                                            and math.abs(current_map.itself.y - current_map.opp_main.y) < safety_distance) :
+    if (current_map.opp_main.object != "false" and abs(current_map.itself.x - current_map.opp_main.x) < safety_distance
+                                               and abs(current_map.itself.y - current_map.opp_main.y) < safety_distance) :
         return True
-    if (current_map.opp_annex.object != "false" and math.abs(current_map.itself.x - current_map.opp_annex.x) < safety_distance
-                                            and math.abs(current_map.itself.y - current_map.opp_annex.y) < safety_distance) :
+    if (current_map.opp_annex.object != "false" and abs(current_map.itself.x - current_map.opp_annex.x) < safety_distance
+                                                and abs(current_map.itself.y - current_map.opp_annex.y) < safety_distance) :
         return True
 
     return False
