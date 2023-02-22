@@ -2,6 +2,7 @@
 
 ## Ce programme gère la prise de décision globale et la communication avec les différents actionneurs.
 
+import pathfinding
 import rospy
 from robot_ROS.msg import Table_description
 from robot_ROS.msg import Object_position_description
@@ -86,7 +87,7 @@ def make_decision(data):
                 for i in range(4):
                     if zones_availables[i][0]==1:
                         objective = position_closest(zones_availables[i][1], data.itself)
-                        move_steps = get_path(objective.x, objective.y, data)
+                        move_steps = pathfinding.main(objective.x, objective.y, data, equipe)
                         start_move(step[0][0], step[0][1], data.itself)
                         if len(zones_availables[i][1])==0:
                             hastarget = False
@@ -145,11 +146,7 @@ def zone_libre(zone):
     #regarde si la zone selectionnée est libre
     #facile en regardant si les robots adverses intersectent la zone étudiée
     pass
-    
-def get_path(x, y, table_description):
-    #aller chercher l'info dans le fichier de pathfinding
-    #variable retournée : liste des coordonnées auxquelles il faut aller successivement
-    pass
+
 
 def start_move(x, y, self_pos):
     #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
