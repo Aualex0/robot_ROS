@@ -16,22 +16,6 @@ init_time = time.time()     #initialisation du temps à t = 0
 blocks_grabbable = 3        #nombre de block récupérable dans la pile de récupération
 blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
 cakes_released = 0          #nombre de gateaux relâchés (normalement bien formés)
-zones_availables = [[2,     #à terme, à déplacer dans la database principale
-                     Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0),
-                     Object_position_description(object = "ingredient yellow", x = 775, y = 2000-225, alpha = 0),
-                     Object_position_description(object = "ingredient brown", x = 1125, y = 2000-725, alpha = 0)],
-                    [2,
-                     Object_position_description(object = "ingredient rose", x = 3000-575, y = 2000-225, alpha = 0),
-                     Object_position_description(object = "ingredient yellow", x = 3000-775, y = 2000-225, alpha = 0),
-                     Object_position_description(object = "ingredient brown", x = 3000-1125, y = 2000-725, alpha = 0)],
-                    [2,
-                     Object_position_description(object = "ingredient rose", x = 3000-575, y = 225, alpha = 0),
-                     Object_position_description(object = "ingredient yellow", x = 3000-775, y = 225, alpha = 0),
-                     Object_position_description(object = "ingredient brown", x = 3000-1125, y = 725, alpha = 0)],
-                    [2,
-                     Object_position_description(object = "ingredient rose", x = 575, y = 225, alpha = 0),
-                     Object_position_description(object = "ingredient yellow", x = 775, y = 225, alpha = 0),
-                     Object_position_description(object = "ingredient brown", x = 1125, y = 725, alpha = 0)]]        #zones de blocs encore disponibles (non défoncés par un robot adverse) (sens horaire, en partant des paniers)(2=True,1=target,0=False)
 zones_plats = [(0,0)]*5     #coordonnées du centre des 5 plats par ordre d'importance (=les plus éloignés de la safezone) pour la fin de la partie (TODO)
 current_goal = [(0,0)]      #coordonnées de l'objectif actuel, à initialiser avec le premier point (1er bloc de ressources)
 equipe = 3                  #3:bleu et 0:vert
@@ -77,6 +61,14 @@ def make_decision(data):
     #l'ordre peut être de stopper tout mouvement jusqu'à validation par les actionneurs internes (état stop moteur)
     
     table_description = data.data
+    zones_availables = [[table_description.other.q1_value,     
+                         table_description.other.q1],
+                        [table_description.other.q2_value,
+                         table_description.other.q2],
+                        [table_description.other.q3_value,
+                         table_description.other.q3],
+                        [table_description.other.q4_value,
+                         table_description.other.q4]]        #zones de blocs encore disponibles (non défoncés par un robot adverse) (sens horaire, en partant des paniers)(2=True,1=target,0=False)
     #moves possibles : aller chercher la ressource suivante, aller déposer les gateaux, mettre les pieds dans le plat
     #si on est déjà en récupération de ressources, on privilégie de terminer la recup
     time_left = 100 - (time.time() - init_time())
@@ -93,12 +85,28 @@ def make_decision(data):
             else:
                 for i in range(4):
                     if zones_availables[i][0]==1:
-                        objective = position_closest(zones_availables[i][1::]data.itself)
+                        objective = position_closest(zones_availables[i][1], data.itself)
                         move_steps = get_path(objective.x, objective.y, data)
                         start_move(step[0][0], step[0][1], data.itself)
-                        if len(zones_availables[i])==1:
+                        if len(zones_availables[i][1])==0:
                             hastarget = False
                             zones_availables[i][0]=0
+                            switch (i) {
+                                case 0:
+                                    table_description.other.q1_value = 0;
+                                    break;
+                                case 1:
+                                    table_description.other.q2_value = 0;
+                                    break;
+                                case 2:
+                                    table_description.other.q3_value = 0;
+                                    break;
+                                case 3:
+                                    table_description.other.q4_value = 0;
+                                    break;
+                            }
+                            update_database(table_description)
+
                 if not hastarget:
                     if zones_availables[1][0] == 2 and zones_availables[2][0] == 2 :
                         #go to closest
@@ -110,9 +118,9 @@ def make_decision(data):
                             #go there
                             zones_availables[equipe][0] = 1
                             pass
-                        elif zones_availables[3-equipe][0]==2 :
+                        elif zones_availables[3-equipe][0] == 2 :
                             #go there
-                            zones_available[3-equipe][0] = 1
+                            zones_availables[3-equipe][0] = 1
                             pass
                         else:
                             #go to available from 1 and 2
@@ -122,7 +130,7 @@ def make_decision(data):
             #aller poser dans les zones_plats en remplissant par le bas puis se placer en protection (passage en phase 3 de test plus tard)
             pass
               
-    make_decision(data)
+    make_decision(table_description)
         
 def pieds_dans_le_plat(table_description):
     #effectue l'action de mettre les pieds dans le plat
@@ -206,6 +214,13 @@ def listener():
         rate = rospy.Rate(calcul_frequency) 
         message = "true"
         pub.publish(message)
+  
+ 
+                
+def update_database(data):
+    pub = rospy.Publisher('update_objective', Table_description, queue_size=10)
+    pub.publish(data)
+             
 
 
 if __name__ == '__main__':
