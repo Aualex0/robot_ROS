@@ -49,7 +49,10 @@ def update_map(data):
         current_map.opp_annex = data.opp_annex
     else :
         current_map.opp_annex.x += trust_factor*(data.opp_annex.x - current_map.opp_annex.x)
-    
+
+        
+def update_objective(data):
+    current_map = data
 
 
 def send_data(data):
@@ -84,7 +87,9 @@ def check():
 
 def listener():
     rospy.init_node('collision_monitor', anonymous=True)
-
+    
+    
+    rospy.Subscriber("update_objective", Table_description, update_objective)
     rospy.Subscriber("update_data", Table_description, update_map)
     rospy.Subscriber("ask_data", String, send_data)
 
