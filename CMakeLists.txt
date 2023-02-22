@@ -53,7 +53,6 @@ find_package(catkin REQUIRED COMPONENTS
    Object_position_description.msg
    Table_description.msg
    Static_positioned_objects.msg
-   Ingredient.msg
  )
 
 ## Generate services in the 'srv' folder
