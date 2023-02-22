@@ -86,6 +86,7 @@ def check():
 
 
 def listener():
+    global stop
     rospy.init_node('collision_monitor', anonymous=True)
     
     
