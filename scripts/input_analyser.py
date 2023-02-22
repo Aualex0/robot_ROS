@@ -6,6 +6,7 @@
 import rospy
 from robot_ROS.msg import Table_description
 from robot_ROS.msg import Object_position_description
+from robot_ROS.msg import Static_positioned_objects
 
 def talker():
     pub = rospy.Publisher('update_data', Table_description, queue_size=10)
