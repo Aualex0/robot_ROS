@@ -135,7 +135,9 @@ def make_decision(data):
             #aller poser dans les zones_plats en remplissant par le bas puis se placer en protection (passage en phase 3 de test plus tard)
             pass
               
-    make_decision(table_description)
+    pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
+    message = "true"
+    pub.publish(message)
         
 def pieds_dans_le_plat(table_description):
     #effectue l'action de mettre les pieds dans le plat
