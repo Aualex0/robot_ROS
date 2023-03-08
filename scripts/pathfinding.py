@@ -220,7 +220,7 @@ def generate_walls(team):
     for wall in polygon_walls:
         diagram.walls += update_walls(wall)
 
-def main(x, y, Table_description, team)
+def main(x, y, Table_description, team):
     diagram = SquareGrid(2000, 3000)
 
     #récupération des coordonnées des objets
