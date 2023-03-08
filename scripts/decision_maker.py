@@ -6,13 +6,14 @@ import pathfinding
 import rospy
 from robot_ROS.msg import Table_description
 from robot_ROS.msg import Object_position_description
-from std_msgs import String
+from std_msgs.msg import String
 import math
 import time
 
 processing = False          #True si action interne en cours qui nécessite l'arrêt du robot (grab ou release de gateaux)
 moving = False              #True si le robot est actuellement en mouvement
 depose = False             #True à partir du moment où on a récupéré les 18 couches
+hastarget = True
 init_time = time.time()     #initialisation du temps à t = 0
 blocks_grabbable = 3        #nombre de block récupérable dans la pile de récupération
 blocks_grabbed = 0          #nombre de blocs récupérés (un bloc est un ensemble de 3 couches)
@@ -56,12 +57,13 @@ def position_closest(list_objects, self_pos):
         
 
 def make_decision(data):
+    global depose, hastarget
     #input : Table description, intern state, time left, moving, past actions
     #output : first move (order to motors or order to actioners)
     #publish for actioners to act
     #l'ordre peut être de stopper tout mouvement jusqu'à validation par les actionneurs internes (état stop moteur)
     
-    table_description = data.data
+    table_description = data
     zones_availables = [[table_description.other.q1_value,     
                          table_description.other.q1],
                         [table_description.other.q2_value,
@@ -72,7 +74,7 @@ def make_decision(data):
                          table_description.other.q4]]        #zones de blocs encore disponibles (non défoncés par un robot adverse) (sens horaire, en partant des paniers)(2=True,1=target,0=False)
     #moves possibles : aller chercher la ressource suivante, aller déposer les gateaux, mettre les pieds dans le plat
     #si on est déjà en récupération de ressources, on privilégie de terminer la recup
-    time_left = 100 - (time.time() - init_time())
+    time_left = 100 - (time.time() - init_time)
     if time_left < time_to_pdp:
         pieds_dans_le_plat(table_description)
     else:
@@ -96,15 +98,18 @@ def make_decision(data):
                         if len(zones_availables[i][1])==0:
                             hastarget = False
                             zones_availables[i][0]=0
-                            match i :
-                                case 0:
-                                    table_description.other.q1_value = 0
-                                case 1:
-                                    table_description.other.q2_value = 0
-                                case 2:
-                                    table_description.other.q3_value = 0
-                                case 3:
-                                    table_description.other.q4_value = 0
+                            if i == 0:
+                                table_description.other.q1_value = 0
+              
+                            elif i == 1:
+                                table_description.other.q2_value = 0
+                        
+                            elif i == 2:
+                                table_description.other.q3_value = 0
+                           
+                            elif i == 3:
+                                table_description.other.q4_value = 0
+                
                             update_database(table_description)
 
                 if not hastarget:
@@ -130,7 +135,7 @@ def make_decision(data):
             #aller poser dans les zones_plats en remplissant par le bas puis se placer en protection (passage en phase 3 de test plus tard)
             pass
               
-    pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
+    pub = rospy.Publisher('ask_data', String, queue_size=10)
     message = "true"
     pub.publish(message)
         
@@ -153,7 +158,7 @@ def start_move(x, y, self_pos):
     #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
     objective = Object_position_description(object = "objective", x=x, y=y, alpha=0)
     objective_self_referential = change_coordinates(data.itself, objective)
-    talker_motors(1, None, None, math.atan2(objective_self_referential.y, objective_self_referential.x)
+    talker_motors(1, None, None, math.atan2(objective_self_referential.y, objective_self_referential.x))
     talker_motors(2, distance(data.itself, objective), 0, None)
 
 def talker_motors(type, x, y, rotation):
@@ -208,7 +213,7 @@ def listener():
     rospy.Subscriber("intern_state", String, intern_state)
 
     while not rospy.is_shutdown():
-        pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
+        pub = rospy.Publisher('ask_data', String, queue_size=10)
         rate = rospy.Rate(calcul_frequency) 
         message = "true"
         pub.publish(message)
