@@ -32,6 +32,10 @@ double x, y; // position en mm
 float ordre; // l'ordre envoyé
 int alpha; // entre 0 et 360
 float res[3] = {}; // tableau contenant les paramètres géométriques
+bool stopMoteurs = False;
+
+int[4] objective;
+int[4] next_objective;
 
 double facteurMoteurG = 0.00005*1.0267*1.39;  // facteur metre/step
 double facteurMoteurD = 0.00005*1.0267*1.39;  // si deplacement de 9cm au lieu de 10cm => facteur * 0.9
@@ -55,11 +59,19 @@ void messageCb( const std_msgs::String& toggle_msg){
   int y = ordre[2];
   int alpha = ordre[3];
 
-    if (etat == 0) {
-      stopMoteurs();
-    }
+  if (etat == 0) {
+      stopMoteurs = True;
+      objective[0] = 0;
+  }
+  else {
+      if (objective[0]==0) {
+          objective = copy(ordre);
+      } else {
+          next_objective = copy(ordre);
+      }
+  }
 
-    if (etat == 1) { //rotation: recoit alpha;
+    /*if (etat == 1) { //rotation: recoit alpha;
       rotation(alpha);
       msg_send.data = "success";
       chatter.publish( &msg_send );
@@ -77,7 +89,7 @@ void messageCb( const std_msgs::String& toggle_msg){
         chatter.publish( &msg_send );
         nh.spinOnce();
       }
-    }
+    }*/
 }
 
 //initialisation node receiver
