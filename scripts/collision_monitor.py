@@ -104,7 +104,7 @@ def listener():
                 pub = rospy.Publisher('order_move', String, queue_size=10)
                 #pub.publish() publish order to stop
         elif stop:
-            stop = False;
+            stop = False
             pub = rospy.Publisher('order_move', String, queue_size=10)
             #pub.publish() publish order to move again
         time.sleep(0.05)
