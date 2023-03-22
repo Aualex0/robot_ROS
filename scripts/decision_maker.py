@@ -2,13 +2,16 @@
 
 ## Ce programme gère la prise de décision globale et la communication avec les différents actionneurs.
 
-import pathfinding
+from pathfinding import *
 import rospy
 from robot_ROS.msg import Table_description
 from robot_ROS.msg import Object_position_description
 from std_msgs.msg import String
 import math
 import time
+
+#debuggage
+debug = True
 
 processing = False          #True si action interne en cours qui nécessite l'arrêt du robot (grab ou release de gateaux)
 moving = False              #True si le robot est actuellement en mouvement
@@ -90,6 +93,10 @@ def make_decision(data):
                     if zones_availables[i][0]==1:
                         objective = position_closest(zones_availables[i][1], data.itself)
                         move_steps = pathfinding.main(objective.x, objective.y, data, equipe)
+                        if debug:
+                            pub = rospy.Publisher('debug', String, queue_size=10)
+                            message = str(move_steps[1][0]) + str(move_steps[1][0])
+                            pub.publish(message)
                         start_move(move_steps[1][0], move_steps[1][1], data.itself)
                         table_description.itself.x = move_steps[1][0]
                         table_description.itself.y = move_steps[1][1]
@@ -158,18 +165,24 @@ def start_move(x, y, self_pos):
     #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
     objective = Object_position_description(object = "objective", x=x, y=y, alpha=0)
     objective_self_referential = change_coordinates(data.itself, objective)
-    talker_motors(1, None, None, math.atan2(objective_self_referential.y, objective_self_referential.x))
-    talker_motors(2, distance(data.itself, objective), 0, None)
+    talker_motors(1, 0, 0, math.atan2(objective_self_referential.y, objective_self_referential.x))
+    talker_motors(2, distance(data.itself, objective), 0, 0)
 
 def talker_motors(type, x, y, rotation):
     # format des données à envoyer aux moteurs principaux : (int type, float x, float y, int rotation).
     # type = (0:stop, 2:translation; 1:rotation)
     # coordonnées dans la base du robot
     # rotation sens trigo
+    
     pub = rospy.Publisher('order_move', list, queue_size=10)
-    message = [type, x, y, rotation]
+    message = str(type) + "," + str(x) + "," + str(y) + "," + str(rotation)
     pub.publish(message) #publish order to move
     moving = True
+    
+    if debug:
+        pub = rospy.Publisher('debug', String, queue_size=10)
+        message = "commande envoyée au moteur : " + message
+        pub.publish(message)
     
 def talker_actioners(grab):
     # donne l'ordre aux actionneurs de se mettre en route pour ramasser les palets
@@ -183,6 +196,12 @@ def feedback_move(data):
     #reçoit le retour de l'arduino moteur (par ex si le mvmt a été effectué avec succès)
     #lance un nouvel ordre instantanément
     #reçoit "success" si c'est un succès, autre chose si c'est une erreur
+    
+    if debug:
+        pub = rospy.Publisher('debug', String, queue_size=10)
+        message = "feedback moteurs : " + data.data
+        pub.publish(message)
+				
     if data.data == "success":
         moving = False
         pub = rospy.Publisher('ask_data', Table_description, queue_size=10)
@@ -204,19 +223,37 @@ def intern_state(data):
     else:
         pass
         #debug here
+        
+def test_fct(data):
+    if debug:
+        message = "test starting"
+        pub_debug.publish(message)
+    objective = Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0)
+    move_steps = pathfinder(objective.x, objective.y, data, equipe)
+    if debug:
+        message = "coordonnées à atteindre : ", str(move_steps[1][0]) + str(move_steps[1][1])
+        pub_debug.publish(message)
+        start_move(move_steps[1][0], move_steps[1][1], data.itself)
+       
+def starter_test(data):
+    message = "true"
+    pub_ask_data.publish(message)
 
 def listener():
-    rospy.init_node('decision_maker', anonymous=True)
-
-    rospy.Subscriber("send_data", Table_description, make_decision)
-    rospy.Subscriber("feedback_move", String, feedback_move)
-    rospy.Subscriber("intern_state", String, intern_state)
 
     while not rospy.is_shutdown():
-        pub = rospy.Publisher('ask_data', String, queue_size=10)
-        rate = rospy.Rate(calcul_frequency) 
-        message = "true"
-        pub.publish(message)
+    	if debug:
+            rate = rospy.Rate(100)
+            rate.sleep()
+            #pub = rospy.Publisher('debug', String, queue_size=10)
+            #message = "running"
+            #pub.publish(message)
+    		
+    	else:
+            #pub_ask_data = rospy.Publisher('ask_data', String, queue_size=10)
+            rate = rospy.Rate(calcul_frequency) 
+            message = "true"
+            pub_ask_data.publish(message)
   
  
                 
@@ -227,4 +264,19 @@ def update_database(data):
 
 
 if __name__ == '__main__':
+    global pub_ask_data, pub_debug
+
+    pub_ask_data = rospy.Publisher('ask_data', String, queue_size=10)
+    pub_debug = rospy.Publisher('debug', String, queue_size=10)
+
+    rospy.init_node('decision_maker', anonymous=True)
+
+    if debug:
+        rospy.Subscriber("send_data", Table_description, test_fct)
+    else:
+        rospy.Subscriber("send_data", Table_description, make_decision)
+    rospy.Subscriber("feedback_move", String, feedback_move)
+    rospy.Subscriber("intern_state", String, intern_state)
+    rospy.Subscriber("starter", String, starter_test)
+
     listener()
