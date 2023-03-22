@@ -84,15 +84,6 @@ def get_position(data):
 
 
 
-def listener():
-    rospy.init_node('get_position', anonymous=True)
-
-    rospy.Subscriber("obstacles", Obstacles, get_position)
-
-    rospy.spin()
-
-
-
 def angleDeg(point):
     #envoi l'angle (en deg) que fait OP avec l'horizontale
     x = point[0]
@@ -115,6 +106,13 @@ def rotate(point, teta):
     return np.array([xprim, yprim])
 
 
+
+def listener():
+    rospy.init_node('get_position', anonymous=True)
+
+    rospy.Subscriber("obstacles", Obstacles, get_position)
+
+    rospy.spin()
 
 
 if __name__ == '__main__':
