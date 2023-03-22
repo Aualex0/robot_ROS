@@ -62,12 +62,15 @@ void messageCb( const std_msgs::String& toggle_msg){
   if (etat == 0) {
       stopMoteurs = True;
       objective[0] = 0;
+      next_objective[0] = 0;
   } 
   else {
       if (objective[0]==0) {
+          stopMoteurs = False;
           objective = copy(ordre);
       } else {
           if (next_objective[0]==0) {
+              stopMoteurs = False;
               next_objective = copy(ordre);
           }
       }
@@ -173,11 +176,11 @@ void loop() {
     moteurG.move(long(-Lg / facteurMoteurG)); // on donne les consignes de mouvement aux moteurs
     moteurD.move(long(Ld / facteurMoteurD));
     
-    while ((moteurG.isRunning() || moteurD.isRunning()) ) {// tant que les 2 moteurs ont pas fini et qu'on a pas recu de nouvelle donnée
+    while ((moteurG.isRunning() || moteurD.isRunning()) && !stopMoteurs ) {// tant que les 2 moteurs ont pas fini et qu'on a pas recu de nouvelle donnée
       moteurG.run(); // les moteurs effectuent leurs ordres
       moteurD.run();
-
     }
+    stopMoteurs();
 
     return true;
   }
@@ -189,11 +192,11 @@ void loop() {
     }
     moteurG.move(long(angle0 * facteurRotation / facteurMoteurG)); //ajoute nouvelle objectif
     moteurD.move(long(angle0 * facteurRotation / facteurMoteurD)); //tourne dans le sens inverse
-    while (moteurG.isRunning() == true | moteurD.isRunning() == true) { // question: remplacer le isrunning?
+    while ((moteurG.isRunning() == true | moteurD.isRunning() == true)  && !stopMoteurs ) { // question: remplacer le isrunning?
       moteurG.run();
       moteurD.run();
-
     }
+    stopMoteurs();
 
   }
 
@@ -201,10 +204,6 @@ void loop() {
   void stopMoteurs() {
     moteurG.stop();   //nouvel objectif pour s'arreter le plus rapidement possible
     moteurD.stop();
-    while (moteurG.isRunning() == true | moteurD.isRunning() == true) {
-      moteurG.run();
-      moteurD.run();
-    }
   }
 
   void geometrie(float x, float y) {
