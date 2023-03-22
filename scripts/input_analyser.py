@@ -15,6 +15,28 @@ import math
 import numpy as np
 
 
+#positions des balises
+B0 = np.array([0,0])
+B1 = np.array([3,0])
+B2 = np.array([1.5,2])
+
+Gtheo = (B0+B1+B2)/3
+
+objects_on_table = Static_positioned_objects(q1_value = 2, q2_value = 2, q3_value = 1, q4_value = 2,
+            q1 = [Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0),
+                  Object_position_description(object = "ingredient yellow", x = 775, y = 2000-225, alpha = 0),
+                  Object_position_description(object = "ingredient brown", x = 1125, y = 2000-725, alpha = 0)],
+            q2 = [Object_position_description(object = "ingredient rose", x = 3000-575, y = 2000-225, alpha = 0),
+                  Object_position_description(object = "ingredient yellow", x = 3000-775, y = 2000-225, alpha = 0),
+                  Object_position_description(object = "ingredient brown", x = 3000-1125, y = 2000-725, alpha = 0)],
+            q3 = [Object_position_description(object = "ingredient rose", x = 3000-575, y = 225, alpha = 0),
+                  Object_position_description(object = "ingredient yellow", x = 3000-775, y = 225, alpha = 0),
+                  Object_position_description(object = "ingredient brown", x = 3000-1125, y = 725, alpha = 0)],
+            q4 = [Object_position_description(object = "ingredient rose", x = 575, y = 225, alpha = 0),
+                  Object_position_description(object = "ingredient yellow", x = 775, y = 225, alpha = 0),
+                  Object_position_description(object = "ingredient brown", x = 1125, y = 725, alpha = 0)])
+
+
 def get_position(data):
     L = [None for _ in range(5)]    #1-3: les 3 balises, 4-5: le(s) robot(s) adverse(s)
     found = [0 for i in range(3)]
@@ -50,29 +72,11 @@ def get_position(data):
     pub1 = rospy.Publisher('positions', Object_position_description, queue_size=10)
     pub1.publish(pos)
     
-
     table_descr = Table_description(itself = Object_position_description(object="main", x=pos.x, y=pos.y, alpha=pos.alpha),
                                     annex = Object_position_description(object="annex", x=0, y=0, alpha=0),
                                     opp_main = Object_position_description(object="opp_main", x=0, y=0, alpha=0),
                                     opp_annex = Object_position_description(object="opp_annex", x=0, y=0, alpha=0),
-                                    other = Static_positioned_objects(q1_value = 2,
-                                                                      q2_value = 2,
-                                                                      q3_value = 1,
-                                                                      q4_value = 2,
-                                                                      q1 = [Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient yellow", x = 775, y = 2000-225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient brown", x = 1125, y = 2000-725, alpha = 0)],
-                                                                      q2 = [Object_position_description(object = "ingredient rose", x = 3000-575, y = 2000-225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient yellow", x = 3000-775, y = 2000-225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient brown", x = 3000-1125, y = 2000-725, alpha = 0)],
-                                                                      q3 = [Object_position_description(object = "ingredient rose", x = 3000-575, y = 225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient yellow", x = 3000-775, y = 225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient brown", x = 3000-1125, y = 725, alpha = 0)],
-                                                                      q4 = [Object_position_description(object = "ingredient rose", x = 575, y = 225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient yellow", x = 775, y = 225, alpha = 0),
-                                                                            Object_position_description(object = "ingredient brown", x = 1125, y = 725, alpha = 0)]))
-
-
+                                    other = objects_on_table)
 
     pub2 = rospy.Publisher("update_data", Table_description, queue_size=10)
     pub2.publish(table_descr)
@@ -88,12 +92,6 @@ def listener():
     rospy.spin()
 
 
-#positions des balises
-B0 = np.array([0,0])
-B1 = np.array([3,0])
-B2 = np.array([1.5,2])
-
-Gtheo = (B0+B1+B2)/3
 
 def angleDeg(point):
     #envoi l'angle (en deg) que fait OP avec l'horizontale
