@@ -49,6 +49,8 @@ def update_map(data):
         current_map.opp_annex = data.opp_annex
     else :
         current_map.opp_annex.x += trust_factor*(data.opp_annex.x - current_map.opp_annex.x)
+       
+    current_map.other = data.other
 
         
 def update_objective(data):
