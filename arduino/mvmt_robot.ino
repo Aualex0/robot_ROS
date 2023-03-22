@@ -62,12 +62,14 @@ void messageCb( const std_msgs::String& toggle_msg){
   if (etat == 0) {
       stopMoteurs = True;
       objective[0] = 0;
-  }
+  } 
   else {
       if (objective[0]==0) {
           objective = copy(ordre);
       } else {
-          next_objective = copy(ordre);
+          if (next_objective[0]==0) {
+              next_objective = copy(ordre);
+          }
       }
   }
 
@@ -113,6 +115,25 @@ void setup() {
 
 void loop() {
   nh.spinOnce();
+  if (etat == 1) { //rotation: recoit alpha;
+      rotation(alpha);
+      msg_send.data = "success";
+      objective = copy(next_objective);
+      next_objective[0] = 0;
+      chatter.publish( &msg_send );
+      nh.spinOnce();
+    }
+
+    else if (etat == 2) { //translation: recoit x,y;
+      boolean translationComplete = translation(x, y);  //true si pas de message dans le serialPort, false si l'arduino reçoit un message
+
+      if (translationComplete == true) {
+        msg_send.data = "success";
+        objective = copy(next_objective);
+        next_objective[0] = 0;
+        chatter.publish( &msg_send );
+        nh.spinOnce();
+      }
   delay(1);
   }
 
