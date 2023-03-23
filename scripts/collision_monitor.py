@@ -24,6 +24,7 @@ stop = False
 
 def update_map(data):
     # Mise à jour de la map avec comparaison à la map actuelle
+    global current_map
 
     trust_factor = 0.3 # facteur de confiance envers les données du Lidar
     #TODO : rechercher le trust_factor optimal -- à voir si la bibliothèque le fait bcp mieux
