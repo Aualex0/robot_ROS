@@ -120,7 +120,7 @@ void loop() {
   nh.spinOnce();
   if (etat == 1) { //rotation: recoit alpha;
       rotation(alpha);
-      msg_send.data = "success";
+      msg_send.data = "rotation ok";
       objective = copy(next_objective);
       next_objective[0] = 0;
       chatter.publish( &msg_send );
@@ -131,7 +131,7 @@ void loop() {
       boolean translationComplete = translation(x, y);  //true si pas de message dans le serialPort, false si l'arduino reçoit un message
 
       if (translationComplete == true) {
-        msg_send.data = "success";
+        msg_send.data = "translation ok";
         objective = copy(next_objective);
         next_objective[0] = 0;
         chatter.publish( &msg_send );
