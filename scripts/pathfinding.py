@@ -1,9 +1,22 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# generated from catkin/cmake/template/script.py.in
+# creates a relay to a python script source file, acting as that file.
+# The purpose is that of a symlink
+
+
 # Script de pathfinding
 
 from __future__ import annotations
 from typing import Iterator, Tuple, TypeVar, Optional
 from shapely.geometry import Polygon
 import heapq
+
+import rospy
+from std_msgs.msg import String
+
+debug = True
+pub_debug = rospy.Publisher('debug', String, queue_size=100)
 
 #Guide d'utilisation du module de pathfinding
 #from pathfinding import *
@@ -19,14 +32,14 @@ Location = TypeVar('Location')
 GridLocation = Tuple[int, int]
 
 #Initialisation des variables hard-coded
-dist_robot = 180 #taille en mm du robot max depuis le centre de rotation
+dist_robot = 100 #taille en mm du robot max depuis le centre de rotation
 dist_robot_adv = 220 #taille robot adverse (marge au cas où)
 taille_palet = 60 #rayon du palet
 polygon_walls = []
 coords_ressources = []
 coords_annex = (0,0)
 coords_opp_annex = (0,0)
-coords_opponent = (0,0)
+coords_opponent = (200,200)
 
 #Definition de la class Graph
 class Graph:
@@ -68,14 +81,18 @@ class SquareGrid:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.walls: list[GridLocation] = []
+        self.walls = []
     
     def in_bounds(self, id: GridLocation) -> bool:
         (x, y) = id
         return 0 <= x < self.width and 0 <= y < self.height
     
     def passable(self, id: GridLocation) -> bool:
-        return id not in self.walls
+        (x, y) = id
+        for wall in self.walls:
+            if wall[0] <= x <= wall[1] and wall[2] <= y <= wall[3]:
+                return False
+        return True
     
     def neighbors(self, id: GridLocation) -> Iterator[GridLocation]:
         (x, y) = id
@@ -87,13 +104,13 @@ class SquareGrid:
         return results
 
 #fonction de mise à jour des murs avec un nouveau polygone
-def update_walls(polygone):
+def update_walls(x, y, size_x, size_y):
+
     walls = []
-    for i in range(2000):
-        for j in range(3000):
-            p = Polygon([(i, j), (i+1, j), (i, j+1), (i+1, j+1)])
-            if p.intersects(polygone):
-                walls.append((i,j))
+    for i in range(max(0, x), min(1999, x + size_x)):
+        for j in range(max(0, y), min(2999, y + size_y)):
+            walls.append((i,j))
+    
     return walls
 
 #Definition de la classe de file de priorité
@@ -157,24 +174,26 @@ def a_star_search(graph: Graph, start: Location, goal: Location):
     return came_from, cost_so_far
 
 #fonction de recherche de la non-nécessité d'un pas du chemin
-def merge_available(Loc1, Loc2, Loc3):
+def merge_available(Loc1, Loc2, Loc3, walls):
     p = Polygon([Loc1, Loc2, Loc3])
-    for pol in polygon_walls:
+    for wall in walls:
+        pol = Polygon([(wall[0], wall[2]), (wall[0], wall[3]), (wall[1], wall[2]), (wall[1], wall[3])])
         if p.intersects(pol):
             return False
     return True
 
 #fonction d'optimisation du chemin calculé
-def optimize_path(path):
+def optimize_path(path, walls):
     #regarder si il existe une intersection entre le polygone créé et les murs
     #si non, merge le path
+    #TODO gérer l'erreur si chemin introuvable
     new_path: list[Location] = [path[0]]
     ind = 1
     l = len(path)
     if l == 1:
         return new_path
     while ind < l-1:
-        if not merge_available(new_path[len(new_path) - 1],path[ind], path[ind+1]):
+        if not merge_available(new_path[len(new_path) - 1],path[ind], path[ind+1], walls):
             new_path.append(path[ind])
         ind += 1
     new_path.append(path[l-1])
@@ -183,71 +202,120 @@ def optimize_path(path):
 #fonction annexe de création de polygones dilatés
 def dilatation_polygone(x, y, border):
     #x, y = positions du centre
-    return Polygon([(center + border, center + border),
-                    (center - border, center + border),
-                    (center - border, center - border),
-                    (center + border, center - border)])
-
+    return [(x - border, y - border),
+                    (x + border, y - border),
+                    (x + border, y + border),
+                    (x - border, y + border)]
+                    
 #fonction de génération des murs à partir des coordonnées des objets
-def generate_walls(team):
-    polygon_walls = []
+def generate_walls(team, diagram):
 
+    
     #murs dûs aux ressources
+    border = taille_palet + dist_robot
     for (x,y) in coords_ressources:
-        polygon_walls.append(dilatation_polygone(x, y, taille_palet + dist_robot))
+        diagram.walls.append([x - border, x + border, y - border, y + border])
 
     #murs dûs aux robots
+    border = dist_robot + dist_robot_adv
     (x,y) = coords_opponent
-    polygon_walls.append(dilatation_polygone(x, y, dist_robot + dist_robot_adv))
+    if (x,y) != (0,0):
+        diagram.walls.append([x - border, x + border, y - border, y + border])
     (x,y) = coords_opp_annex
-    polygon_walls.append(dilatation_polygone(x, y, dist_robot + dist_robot_adv))
+    if (x,y) != (0,0):
+        diagram.walls.append([x - border, x + border, y - border, y + border])
     (x,y) = coords_annex
-    polygon_walls.append(dilatation_polygone(x, y, dist_robot + dist_robot_adv))
-
+    if (x,y) != (0,0):
+        diagram.walls.append([x - border, x + border, y - border, y + border])
+    
 
     #murs dûs aux bords
-    polygon_walls.append(Polygon([(0,0), (dist_robot, 0), (0,2999), (dist_robot, 2999)]))
-    polygon_walls.append(Polygon([(1999,0), (1999-dist_robot, 0), (1999,2999), (1999-dist_robot, 2999)]))
-    polygon_walls.append(Polygon([(0,0), (0, dist_robot), (1999,0), (1999, dist_robot)]))
-    polygon_walls.append(Polygon([(0, 2999), (0, 2999-dist_robot), (1999,2999), (1999, 2999-dist_robot)]))
-
+    diagram.walls.append([0, dist_robot, 0, 3000])
+    diagram.walls.append([0, 2000, 0, dist_robot])
+    diagram.walls.append([0, 2000, 3000-dist_robot, 3000])
+    diagram.walls.append([2000-dist_robot, 2000, 0, 3000])
+    
     if (team == 0):
-        polygon_walls.append(dilatation_polygone(225, 225, 225 + dist_robot))
+        diagram.walls.append([0, 0, 500 + dist_robot, 500 + dist_robot])
     else:
-        polygon_walls.append(dilatation_polygone(1999-225, 225, 225 + dist_robot)) 
+        diagram.walls.append([2000-500-dist_robot, 2000, 0, 500 + dist_robot])
+         
+    return diagram
 
-    #update walls
-    for wall in polygon_walls:
-        diagram.walls += update_walls(wall)
+def pathfinder(y, x, Table_description, team): 
 
-def main(x, y, Table_description, team):
+
+    #WARNING : x et y sont inversés ici et dans tout le fichier
+    
+    global coords_opponent, coords_opp_annex, coords_annex, coords_ressources
+
+    if debug:
+        message = "lancement du finder"
+        pub_debug.publish(message)
+        
     diagram = SquareGrid(2000, 3000)
 
     #récupération des coordonnées des objets
 
     #coordonnées des autres robots
-    coords_opponent = (Table_description.opp_main.x, Table_description.opp_main.y)
-    coords_opp_annex = (Table_description.opp_annex.x, Table_description.opp_annex.y)
-    coords_annex = (Table_description.annex.x, Table_description.annex.y)
+    coords_opponent = (Table_description.opp_main.y, Table_description.opp_main.x)
+    coords_opp_annex = (Table_description.opp_annex.y, Table_description.opp_annex.x)
+    coords_annex = (Table_description.annex.y, Table_description.annex.x)
 
     #coordonnées des ressources restantes
     coords_ressources = []
     for obj in Table_description.other.q1:
-        coords_ressources.append((obj.x, obj.y))
+        coords_ressources.append((obj.y, obj.x))
     for obj in Table_description.other.q2:
-        coords_ressources.append((obj.x, obj.y))
+        coords_ressources.append((obj.y, obj.x))
     for obj in Table_description.other.q3:
-        coords_ressources.append((obj.x, obj.y))
+        coords_ressources.append((obj.y, obj.x))
     for obj in Table_description.other.q4:
-        coords_ressources.append((obj.x, obj.y))
+        coords_ressources.append((obj.y, obj.x))
     for obj in Table_description.other.gateaux:
-        coords_ressources.append((obj.x, obj.y))
+        coords_ressources.append((obj.y, obj.x))
+
+    if debug:
+        message = "generation des murs"
+        pub_debug.publish(message)
 
     #génération des murs à partir des coordonnées des objets
-    generate_walls()
+    diagram = generate_walls(team, diagram)
+    print(diagram.walls)
+    
+    if debug:
+        message = "murs generes, calcul de la trajectoire"
+        pub_debug.publish(message)
 
     #calcul de la trajectoire
-    start, goal = (Table_description.itself.x, Table_description.itself.y), (x, y)
+    start, goal = (int(Table_description.itself.y), int(Table_description.itself.x)), (x, y)
+    
+    if debug:
+        message = "start : " + str(start) + ", goal : " + str(goal)
+        pub_debug.publish(message)
+    
     came_from, cost_so_far = a_star_search(diagram, start, goal)
-
-    return optimize_path(reconstruct_path(came_from, start=start, goal=goal))
+    
+    if debug:
+        message = "trajectoire calculee"
+        pub_debug.publish(message)
+    
+    path = reconstruct_path(came_from, start=start, goal=goal)
+    
+    if debug:
+        message = "longueur du chemin : " + str(len(path))
+        pub_debug.publish(message)
+        
+    path = optimize_path(path, diagram.walls)
+    
+    if debug:
+        message = "chemin optimise"
+        pub_debug.publish(message)
+        message = "longueur du chemin optimise : " + str(len(path))
+        pub_debug.publish(message)
+    
+    res = []    
+    for i in range(len(path)):
+        res.append([path[i][1], path[i][0]])
+   
+    return res
