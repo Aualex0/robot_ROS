@@ -231,11 +231,15 @@ def make_decision(data):
                 processing = False #TODO à enlever après le 2e arduino
 
         else: #depose est à True
-            depose_ressources()
+            depose_ressources(table_description)
 
-def depose_ressources():
+def depose_ressources(data):
     #utiliser current_goal
     #TODO grab la dernière ressource puis aller déposer aux 2 endroits
+    for i in range(5) :
+	if zone_libre(i, data):
+	    
+	    break
     print("dépos de ressources")
     
 def pieds_dans_le_plat(data):
@@ -255,12 +259,12 @@ def pieds_dans_le_plat(data):
             make_decision(data)
             break
 
-    
+
+global libre = [True,True,True,True,True]
 def zone_libre(zone, data):
     #regarde si la zone selectionnée est libre
-    #facile en regardant si les robots adverses intersectent la zone étudiée
     #TODO calculer en dur avec data.opponent et data.opp_annex
-    return True
+    return libre[zone]
 
 
 def start_move(x, y, self_pos):
