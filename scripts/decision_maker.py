@@ -238,7 +238,7 @@ def depose_ressources(data):
     #TODO grab la dernière ressource puis aller déposer aux 2 endroits
     for i in range(5) :
 	if zone_libre(i, data):
-	    
+	    #TODO : if in zone  then depose, reset blocks grabbed; else call pathfinding
 	    break
     print("dépos de ressources")
     
