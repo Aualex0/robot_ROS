@@ -22,7 +22,7 @@ B2 = np.array([1.5,2])
 
 Gtheo = (B0+B1+B2)/3
 
-objects_on_table = Static_positioned_objects(q1_value = 2, q2_value = 2, q3_value = 1, q4_value = 2,
+objects_on_table = Static_positioned_objects(q1_value = 2, q2_value = 2, q3_value = 2, q4_value = 2,
             q1 = [Object_position_description(object = "ingredient rose", x = 575, y = 2000-225, alpha = 0),
                   Object_position_description(object = "ingredient yellow", x = 775, y = 2000-225, alpha = 0),
                   Object_position_description(object = "ingredient brown", x = 1125, y = 2000-725, alpha = 0)],
