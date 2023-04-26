@@ -135,6 +135,8 @@ def make_decision(data):
                         print("move steps : " + str(move_steps))
                         
                         start_move(move_steps[1][0], move_steps[1][1], data.itself)
+                        table_description.itself.alpha += int(180/math.pi*math.atan2(objective.y - table_description.itself.y, objective.x - table_description.itself.x) - table_description.itself.alpha)
+                        
                         
                         if debug:
                             message = "coordonnees a atteindre : x = " + str(move_steps[1][0]) + ", y = " + str(move_steps[1][1])
@@ -199,6 +201,7 @@ def make_decision(data):
                             message = "coordonnees a atteindre : x = " + str(move_steps[1][0]) + ", y = " + str(move_steps[1][1])
                             pub_debug.publish(message)
                             start_move(move_steps[1][0], move_steps[1][1], data.itself)
+                            table_description.itself.alpha += int(180/math.pi*math.atan2(objective.y - table_description.itself.y, objective.x - table_description.itself.x) - table_description.itself.alpha)
                         
                         table_description.itself.x = move_steps[1][0]
                         table_description.itself.y = move_steps[1][1]
@@ -231,15 +234,11 @@ def make_decision(data):
                 processing = False #TODO à enlever après le 2e arduino
 
         else: #depose est à True
-            depose_ressources(table_description)
+            depose_ressources()
 
-def depose_ressources(data):
+def depose_ressources():
     #utiliser current_goal
     #TODO grab la dernière ressource puis aller déposer aux 2 endroits
-    for i in range(5) :
-	if zone_libre(i, data):
-	    #TODO : if in zone  then depose, reset blocks grabbed; else call pathfinding
-	    break
     print("dépos de ressources")
     
 def pieds_dans_le_plat(data):
@@ -259,18 +258,22 @@ def pieds_dans_le_plat(data):
             make_decision(data)
             break
 
-
-global libre = [True,True,True,True,True]
+    
 def zone_libre(zone, data):
     #regarde si la zone selectionnée est libre
+    #facile en regardant si les robots adverses intersectent la zone étudiée
     #TODO calculer en dur avec data.opponent et data.opp_annex
-    return libre[zone]
+    return True
 
 
 def start_move(x, y, self_pos):
     #prend en entrée un point atteignable et renvoie les instructions de rotation + translation correspondants
     objective = Object_position_description(object = "objective", x=x, y=y, alpha=0)
-    talker_motors(1, 0, 0, 180/math.pi*math.atan2(objective.y - self_pos.y, objective.x - self_pos.x) - self_pos.alpha)
+    angle = 180/math.pi*math.atan2(objective.y - self_pos.y, objective.x - self_pos.x) - self_pos.alpha
+    angle = angle % 360
+    if angle >= 180:
+        angle -= 360
+    talker_motors(1, 0, 0, angle)
     talker_motors(2, distance(self_pos, objective), 0, 0)
 
 def talker_motors(type, x, y, rotation):
@@ -298,8 +301,8 @@ def talker_actioners():
     message = ("grab" if grab else "depose")
     
     if debug:
-        message = "commande envoyee aux actioneurs : " + message
-        pub_debug.publish(message)
+        msg = "commande envoyee aux actioneurs : " + message
+        pub_debug.publish(msg)
     
     pub_order_actioners.publish(message) #publish order to grab slices or to release them and put a cherry on it
     processing = True
@@ -367,6 +370,7 @@ def test_fct(data):
         message = "coordonnees a atteindre : x = " + str(move_steps[1][0]) + ", y = " + str(move_steps[1][1])
         pub_debug.publish(message)
         start_move(move_steps[1][0], move_steps[1][1], data.itself)
+        
        
 def starter_test(data):
     message = "true"
